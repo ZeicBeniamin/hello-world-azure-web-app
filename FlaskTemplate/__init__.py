@@ -1,8 +1,10 @@
-"""
-The flask application package.
-"""
-
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from config import Config
+
 app = Flask(__name__)
+app.config.from_object(Config)
+db = SQLAlchemy(app)
+wsgi_app = app.wsgi_app
 
 import FlaskTemplate.views

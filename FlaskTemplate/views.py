@@ -1,37 +1,32 @@
-"""
-Routes and views for the flask application.
-"""
+from flask import render_template, redirect, request
+from FlaskTemplate import app, db
+from FlaskTemplate.forms import AnimalForm
+import FlaskTemplate.models as models
 
-from datetime import datetime
-from flask import render_template
-from FlaskTemplate import app
+imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT']  + '.blob.core.windows.net/' + app.config['BLOB_CONTAINER']  + '/'
+
 
 @app.route('/')
 @app.route('/home')
 def home():
-    """Renders the home page."""
+    animals = models.Animal.query.all()
     return render_template(
         'index.html',
-        title='Home Page',
-        year=datetime.now().year,
+        imageSource=imageSourceUrl,
+        animals=animals
     )
 
-@app.route('/contact')
-def contact():
-    """Renders the contact page."""
-    return render_template(
-        'contact.html',
-        title='Contact',
-        year=datetime.now().year,
-        message='Your contact page.'
-    )
 
-@app.route('/about')
-def about():
-    """Renders the about page."""
+@app.route('/animal/<int:id>', methods=['GET', 'POST'])
+def animal(id):
+    animal = models.Animal.query.get(int(id))
+    form = AnimalForm(formdata=request.form, obj=animal)
+    if form.validate_on_submit():
+        animal.save_changes(request.files['image_path'])
+        return redirect('/')
     return render_template(
-        'about.html',
-        title='About',
-        year=datetime.now().year,
-        message='Your application description page.'
+        'animal.html',
+        imageSource=imageSourceUrl,
+        form=form,
+        animal=animal
     )
